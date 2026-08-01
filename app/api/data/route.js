@@ -19,9 +19,6 @@ export async function GET(request) {
         const data = [];
         for (const row of rows) {
             const partnerName = String(row.partner || '');
-            if (partnerName.match(/[\[\]\(\)\{\}]/)) {
-                continue;
-            }
             
             const formatDbDate = (d) => {
                 if (!d) return null;
@@ -33,6 +30,7 @@ export async function GET(request) {
             };
 
             data.push({
+                partner: partnerName,
                 customer_name: row.customer_name,
                 customer_id: row.customer_id,
                 backup_storage_gb: row.backup_storage_gb !== null ? String(row.backup_storage_gb) : null,

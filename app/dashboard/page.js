@@ -144,6 +144,11 @@ export default function Dashboard() {
         const usedStorage = data.reduce((acc, r) => {
             const base = parseFloat(String(r.backup_storage_gb).replace(/[^\d.-]/g, '')) || 0;
             const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
+            const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
+            
+            if (isIndirect && extra > 0) {
+                return acc + extra;
+            }
             return acc + base + extra;
         }, 0);
 
@@ -160,10 +165,13 @@ export default function Dashboard() {
         filteredStorage = filteredData.reduce((acc, r) => {
             const base = parseFloat(String(r.backup_storage_gb).replace(/[^\d.-]/g, '')) || 0;
             const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
+            const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
             
-            if (isActFilterActive) return acc + base;
+            const effectiveBase = (isIndirect && extra > 0) ? 0 : base;
+            
+            if (isActFilterActive) return acc + effectiveBase;
             if (isRenFilterActive) return acc + extra;
-            return acc + base + extra;
+            return acc + effectiveBase + extra;
         }, 0);
 
         const isFiltered = data.length !== filteredData.length;
@@ -367,7 +375,17 @@ export default function Dashboard() {
                                         <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
                                             <td className="px-6 py-4 text-sm font-medium text-slate-200">{row.customer_name || '-'}</td>
                                             <td className="px-6 py-4 text-sm text-slate-400">{row.customer_id || '-'}</td>
-                                            <td className="px-6 py-4 text-sm text-slate-300">{row.backup_storage_gb || '0'}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-300">
+                                                {(() => {
+                                                    const base = parseFloat(String(row.backup_storage_gb).replace(/[^\d.-]/g, '')) || 0;
+                                                    const extra = parseFloat(String(row.size_increased).replace(/[^\d.-]/g, '')) || 0;
+                                                    const isIndirect = row.partner && String(row.partner).toLowerCase().includes('indirect');
+                                                    if (isIndirect && extra > 0) {
+                                                        return <span title={`Original Base: ${row.backup_storage_gb}`}>0 (Indirect)</span>;
+                                                    }
+                                                    return row.backup_storage_gb || '0';
+                                                })()}
+                                            </td>
                                             <td className="px-6 py-4 text-sm text-slate-400">{row.activation_date || '-'}</td>
                                             <td className="px-6 py-4 text-sm">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
