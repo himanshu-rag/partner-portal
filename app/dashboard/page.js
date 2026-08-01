@@ -142,8 +142,8 @@ export default function Dashboard() {
         
         // Total Absolute Storage (Used Storage) -> All rows, base + extra
         const usedStorage = data.reduce((acc, r) => {
-            const base = parseFloat(String(r.backup_storage_gb).replace(/[^\\d.-]/g, '')) || 0;
-            const extra = parseFloat(String(r.size_increased).replace(/[^\\d.-]/g, '')) || 0;
+            const base = parseFloat(String(r.backup_storage_gb).replace(/[^\d.-]/g, '')) || 0;
+            const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
             return acc + base + extra;
         }, 0);
 
@@ -158,8 +158,8 @@ export default function Dashboard() {
         else if (isRenFilterActive) filteredTitle = "Filtered Renewed Size";
 
         filteredStorage = filteredData.reduce((acc, r) => {
-            const base = parseFloat(String(r.backup_storage_gb).replace(/[^\\d.-]/g, '')) || 0;
-            const extra = parseFloat(String(r.size_increased).replace(/[^\\d.-]/g, '')) || 0;
+            const base = parseFloat(String(r.backup_storage_gb).replace(/[^\d.-]/g, '')) || 0;
+            const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
             
             if (isActFilterActive) return acc + base;
             if (isRenFilterActive) return acc + extra;
