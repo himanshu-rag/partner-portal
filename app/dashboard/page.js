@@ -139,9 +139,13 @@ export default function Dashboard() {
 
     const metrics = useMemo(() => {
         const activeRows = filteredData.filter(r => r.displayStatus === "Active");
+        const activeData = data.filter(r => {
+            const status = r.status ? String(r.status).toLowerCase() : 'active';
+            return status !== 'lost';
+        });
         
-        // Total Absolute Storage (Used Storage) -> All rows, base + extra
-        const usedStorage = data.reduce((acc, r) => {
+        // Total Absolute Storage (Used Storage) -> All active rows, base + extra
+        const usedStorage = activeData.reduce((acc, r) => {
             const base = parseFloat(String(r.backup_storage_gb).replace(/[^\d.-]/g, '')) || 0;
             const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
             const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
@@ -177,8 +181,8 @@ export default function Dashboard() {
         const isFiltered = data.length !== filteredData.length;
 
         return {
-            totalCustomers: filteredData.length,
-            activeRenewals: activeRows.length,
+            totalCustomers: activeRows.length,
+            activeRenewals: activeRows.length, // Can be the same as total customers now if they only want active counted
             usedStorage: usedStorage.toFixed(2),
             filteredStorage: filteredStorage.toFixed(2),
             filteredTitle,
