@@ -191,17 +191,17 @@ export default function Dashboard() {
             {/* Sidebar Overlay */}
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/60 z-20 md:hidden backdrop-blur-sm"
+                    className="fixed inset-0 bg-slate-950/60 z-40 backdrop-blur-sm transition-opacity"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
-            {/* Sidebar */}
-            <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-slate-900/50 backdrop-blur-xl border-r border-white/5 p-6 z-30 transition-transform duration-300 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+            {/* Sidebar Slide-over Panel */}
+            <aside className={`fixed top-0 right-0 h-screen w-80 bg-slate-900 border-l border-slate-800 p-6 z-50 shadow-2xl transition-transform duration-300 flex flex-col ${sidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">Advanced Filters</h2>
-                    <button onClick={() => setSidebarOpen(false)} className="md:hidden text-slate-400 hover:text-white">
-                        ✕
+                    <button onClick={() => setSidebarOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
                 
@@ -286,13 +286,8 @@ export default function Dashboard() {
             <main className="flex-1 min-w-0 p-4 md:p-8 lg:p-12 overflow-y-auto">
                 <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 bg-slate-800 rounded-lg">
-                                <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                            </button>
-                            <h1 className="text-3xl font-bold tracking-tight text-white">Overview</h1>
-                        </div>
-                        <p className="text-slate-400 mt-1 ml-12 md:ml-0">{email}</p>
+                        <h1 className="text-3xl font-bold tracking-tight text-white">Overview</h1>
+                        <p className="text-slate-400 mt-1">{email}</p>
                     </div>
                     
                     <div className="flex items-center gap-4 w-full sm:w-auto ml-12 md:ml-0">
@@ -392,6 +387,20 @@ export default function Dashboard() {
                         </table>
                     </div>
                 </div>
+
+                {/* Floating Filter Button */}
+                <button 
+                    onClick={() => setSidebarOpen(true)}
+                    className="fixed bottom-8 right-8 z-40 p-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl shadow-indigo-600/30 transition-transform hover:scale-110 flex items-center justify-center group border border-indigo-500/30"
+                    aria-label="Open Filters"
+                >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    {(statusFilter !== "all" || storageFilter !== "all" || actStart || renStart) && (
+                        <span className="absolute top-0 right-0 w-3 h-3 bg-rose-500 rounded-full border-2 border-indigo-600"></span>
+                    )}
+                </button>
             </main>
         </div>
     );
