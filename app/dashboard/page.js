@@ -174,11 +174,12 @@ export default function Dashboard() {
             return acc + base + extra;
         }, 0);
 
+        const totalDirectCount = data.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
         const activeDirectCount = activeRows.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
         const isFiltered = data.length !== filteredData.length;
 
         return {
-            totalCustomers: activeDirectCount,
+            totalCustomers: totalDirectCount,
             activeRenewals: activeDirectCount,
             usedStorage: usedStorage.toFixed(2),
             filteredStorage: filteredStorage.toFixed(2),
