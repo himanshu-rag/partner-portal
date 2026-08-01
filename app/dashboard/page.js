@@ -146,7 +146,7 @@ export default function Dashboard() {
             const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
             const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
             
-            if (isIndirect && extra > 0) {
+            if (isIndirect) {
                 return acc + extra;
             }
             return acc + base + extra;
@@ -167,7 +167,7 @@ export default function Dashboard() {
             const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
             const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
             
-            const effectiveBase = (isIndirect && extra > 0) ? 0 : base;
+            const effectiveBase = isIndirect ? 0 : base;
             
             if (isActFilterActive) return acc + effectiveBase;
             if (isRenFilterActive) return acc + extra;
