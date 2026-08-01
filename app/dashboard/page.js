@@ -141,18 +141,14 @@ export default function Dashboard() {
         const activeRows = filteredData.filter(r => r.displayStatus === "Active");
         const activeData = data.filter(r => {
             const status = r.status ? String(r.status).toLowerCase() : 'active';
-            return status !== 'lost';
+            const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
+            return status !== 'lost' && !isIndirect;
         });
         
         // Total Absolute Storage (Used Storage) -> All active rows, base + extra
         const usedStorage = activeData.reduce((acc, r) => {
             const base = parseFloat(String(r.backup_storage_gb).replace(/[^\d.-]/g, '')) || 0;
             const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
-            const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
-            
-            if (isIndirect) {
-                return acc + extra;
-            }
             return acc + base + extra;
         }, 0);
 
@@ -171,18 +167,18 @@ export default function Dashboard() {
             const extra = parseFloat(String(r.size_increased).replace(/[^\d.-]/g, '')) || 0;
             const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
             
-            const effectiveBase = isIndirect ? 0 : base;
+            if (isIndirect) return acc; // Completely ignore indirect from filtered storage too
             
-            if (isActFilterActive) return acc + effectiveBase;
+            if (isActFilterActive) return acc + base;
             if (isRenFilterActive) return acc + extra;
-            return acc + effectiveBase + extra;
+            return acc + base + extra;
         }, 0);
 
-        const isFiltered = data.length !== filteredData.length;
+        const activeDirectCount = activeRows.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
 
         return {
-            totalCustomers: activeRows.length,
-            activeRenewals: activeRows.length, // Can be the same as total customers now if they only want active counted
+            totalCustomers: activeDirectCount,
+            activeRenewals: activeDirectCount,
             usedStorage: usedStorage.toFixed(2),
             filteredStorage: filteredStorage.toFixed(2),
             filteredTitle,
@@ -375,7 +371,7 @@ export default function Dashboard() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredData.map((row, idx) => (
+                                    filteredData.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).map((row, idx) => (
                                         <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
                                             <td className="px-6 py-4 text-sm font-medium text-slate-200">{row.customer_name || '-'}</td>
                                             <td className="px-6 py-4 text-sm text-slate-400">{row.customer_id || '-'}</td>
