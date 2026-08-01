@@ -193,20 +193,15 @@ async function runSync() {
         let inserted = 0;
         const backupTable = process.env.DB_TABLE || 'backup_history';
         
+        // Truncate before full load since we are syncing everything from sheets
+        // This ensures no duplicates or stale data
+        await db.query(`TRUNCATE TABLE ??`, [backupTable]);
+        
         for (const r of finalRecords) {
             const query = `
                 INSERT INTO ?? 
                 (partner, partner_email, customer_name, customer_id, backup_storage_gb, activation_date, status, renewal_date, size_increased) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE 
-                    partner = VALUES(partner),
-                    partner_email = VALUES(partner_email),
-                    customer_name = VALUES(customer_name),
-                    backup_storage_gb = VALUES(backup_storage_gb),
-                    activation_date = VALUES(activation_date),
-                    status = VALUES(status),
-                    renewal_date = VALUES(renewal_date),
-                    size_increased = VALUES(size_increased)
             `;
             const values = [
                 backupTable,
