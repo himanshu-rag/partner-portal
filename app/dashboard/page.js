@@ -139,13 +139,44 @@ export default function Dashboard() {
 
     const metrics = useMemo(() => {
         const activeRows = filteredData.filter(r => r.displayStatus === "Active");
-        const totalStorage = filteredData.reduce((acc, r) => acc + (parseFloat(r.backup_storage_gb) || 0), 0);
+        
+        // Total Absolute Storage (Used Storage) -> All rows, base + extra
+        const usedStorage = data.reduce((acc, r) => {
+            const base = parseFloat(String(r.backup_storage_gb).replace(/[^\\d.-]/g, '')) || 0;
+            const extra = parseFloat(String(r.size_increased).replace(/[^\\d.-]/g, '')) || 0;
+            return acc + base + extra;
+        }, 0);
+
+        // Filtered Storage
+        let filteredStorage = 0;
+        let filteredTitle = "Filtered Storage";
+        
+        const isActFilterActive = actStart || actEnd;
+        const isRenFilterActive = renStart || renEnd;
+        
+        if (isActFilterActive) filteredTitle = "Filtered Base Storage";
+        else if (isRenFilterActive) filteredTitle = "Filtered Renewed Size";
+
+        filteredStorage = filteredData.reduce((acc, r) => {
+            const base = parseFloat(String(r.backup_storage_gb).replace(/[^\\d.-]/g, '')) || 0;
+            const extra = parseFloat(String(r.size_increased).replace(/[^\\d.-]/g, '')) || 0;
+            
+            if (isActFilterActive) return acc + base;
+            if (isRenFilterActive) return acc + extra;
+            return acc + base + extra;
+        }, 0);
+
+        const isFiltered = data.length !== filteredData.length;
+
         return {
             totalCustomers: filteredData.length,
             activeRenewals: activeRows.length,
-            usedStorage: totalStorage.toFixed(2),
+            usedStorage: usedStorage.toFixed(2),
+            filteredStorage: filteredStorage.toFixed(2),
+            filteredTitle,
+            isFiltered
         };
-    }, [filteredData]);
+    }, [filteredData, data, actStart, actEnd, renStart, renEnd]);
 
     if (loading) {
         return (
@@ -297,9 +328,16 @@ export default function Dashboard() {
                     </div>
                     <div className="bg-white/5 border border-white/5 p-6 rounded-2xl backdrop-blur-sm shadow-xl relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <p className="text-sm font-medium text-slate-400 mb-2 flex items-center gap-1">Used Storage <span className="text-xs text-slate-500 cursor-help" title="Filtered sum of GB used">ⓘ</span></p>
+                        <p className="text-sm font-medium text-slate-400 mb-2 flex items-center gap-1">Used Storage <span className="text-xs text-slate-500 cursor-help" title="Calculated from Base Storage + Renewed Size across all customers">ⓘ</span></p>
                         <p className="text-3xl font-bold text-white">{metrics.usedStorage} GB</p>
                     </div>
+                    {metrics.isFiltered && (
+                        <div className="bg-white/5 border border-white/5 p-6 rounded-2xl backdrop-blur-sm shadow-xl relative overflow-hidden group animate-in fade-in zoom-in duration-300">
+                            <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <p className="text-sm font-medium text-slate-400 mb-2 flex items-center gap-1">{metrics.filteredTitle} <span className="text-xs text-slate-500 cursor-help" title="Calculated based on active date filters">ⓘ</span></p>
+                            <p className="text-3xl font-bold text-white">{metrics.filteredStorage} GB</p>
+                        </div>
+                    )}
                     <div className="bg-white/5 border border-white/5 p-6 rounded-2xl backdrop-blur-sm shadow-xl relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         <p className="text-sm font-medium text-slate-400 mb-2">Active Renewals</p>
@@ -319,6 +357,7 @@ export default function Dashboard() {
                                     <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Activation Date</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Renewal Date</th>
+                                    <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Renewed Size</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
@@ -345,6 +384,7 @@ export default function Dashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-slate-400">{row.renewal_date || '-'}</td>
+                                            <td className="px-6 py-4 text-sm text-slate-300">{row.size_increased || '-'}</td>
                                         </tr>
                                     ))
                                 )}
