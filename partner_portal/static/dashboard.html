@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner Portal | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css?v=5">
+</head>
+<body class="dashboard-body">
+    <nav class="navbar glass-panel">
+        <div class="nav-brand">
+            <div class="logo-circle-small"></div>
+            <h2>Partner Portal</h2>
+        </div>
+        <div class="nav-user">
+            <span id="userEmail" class="user-email"></span>
+            <button id="logoutBtn" class="secondary-btn">Sign Out</button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1>Overview</h1>
+                <p>Monitor your active customers and renewals.</p>
+            </div>
+            
+            <div class="metrics-grid">
+                <div class="metric-card glass-panel">
+                    <h3>Total Customers</h3>
+                    <div class="metric-value" id="metricCustomers">-</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <h3 title="Allocated Storage Size from Portal" style="cursor: help;">Total Storage <span style="font-size: 0.8rem; opacity: 0.7;">ⓘ</span></h3>
+                    <div class="metric-value" id="metricStorageAllocated">-</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <h3 title="Calculated from Base Storage across all visible customers" style="cursor: help;">Used Storage <span style="font-size: 0.8rem; opacity: 0.7;">ⓘ</span></h3>
+                    <div class="metric-value" id="metricStorageTotal">-</div>
+                </div>
+                <div class="metric-card glass-panel" id="metricCardFiltered" style="display: none;">
+                    <h3 title="Calculated from Renewed Size when a Date Filter is applied" style="cursor: help;">Filtered Storage <span style="font-size: 0.8rem; opacity: 0.7;">ⓘ</span></h3>
+                    <div class="metric-value" id="metricStorageFiltered">-</div>
+                </div>
+                <div class="metric-card glass-panel">
+                    <h3>Active Renewals</h3>
+                    <div class="metric-value" id="metricRenewals">-</div>
+                </div>
+            </div>
+        </header>
+
+        <section class="data-section glass-panel">
+            <div class="table-header">
+                <h3>Customer Directory</h3>
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search customers...">
+                    </div>
+                    <button id="filterToggleBtn" class="secondary-btn" style="padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
+                        Filters <span style="font-size: 16px;">⧸</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Customer Name</th>
+                            <th>Customer ID</th>
+                            <th>Storage (GB)</th>
+                            <th>Activation Date</th>
+                            <th>Status</th>
+                            <th>Renewal Date</th>
+                            <th>Renewed Size</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Rows injected via JS -->
+                    </tbody>
+                </table>
+                <div id="tableLoader" class="table-loader">
+                    <div class="spinner-large"></div>
+                    <p>Loading your data...</p>
+                </div>
+                <div id="emptyState" class="empty-state hidden">
+                    <p>No customers found.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Slide-out Sidebar -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    <div id="filterSidebar" class="filter-sidebar glass-panel">
+        <div class="sidebar-header">
+            <h3>Advanced Filters</h3>
+            <button id="closeSidebarBtn" class="close-btn">&times;</button>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="filter-group">
+                <label>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; opacity: 0.8; vertical-align: middle;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Status
+                </label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="lost">Lost</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; opacity: 0.8; vertical-align: middle;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    Storage Size
+                </label>
+                <select id="storageFilter" class="filter-select">
+                    <option value="all">All Storage</option>
+                    <option value="small">Under 10 GB</option>
+                    <option value="medium">10 GB - 50 GB</option>
+                    <option value="large">Over 50 GB</option>
+                </select>
+            </div>
+
+            <div class="filter-group" id="actDateGroup">
+                <label>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; opacity: 0.8; vertical-align: middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Activation Date
+                </label>
+                <div class="date-range">
+                    <input type="date" id="actStartDateFilter" class="filter-select">
+                    <span class="range-divider">→</span>
+                    <input type="date" id="actEndDateFilter" class="filter-select">
+                </div>
+            </div>
+
+            <div class="filter-group" id="renDateGroup">
+                <label>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; opacity: 0.8; vertical-align: middle;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Renewal Date
+                </label>
+                <div class="date-range">
+                    <input type="date" id="renStartDateFilter" class="filter-select">
+                    <span class="range-divider">→</span>
+                    <input type="date" id="renEndDateFilter" class="filter-select">
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button id="clearFiltersBtn" class="secondary-btn" style="flex: 1;">Clear</button>
+            <button id="applyFiltersBtn" class="primary-btn" style="flex: 1;">Apply</button>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v=8"></script>
+</body>
+</html>
