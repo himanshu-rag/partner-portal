@@ -14,7 +14,7 @@ const normalizeString = (val) => {
 
 const normalizeDate = (dateVal) => {
     if (dateVal === null || dateVal === undefined || String(dateVal).trim() === '') return null;
-    const parts = String(dateVal).split('-');
+    const parts = String(dateVal).replace(/\//g, '-').split('-');
     if (parts.length === 3) {
         // DD-MM-YYYY to YYYY-MM-DD
         return `${parts[2]}-${parts[1]}-${parts[0]}`;
