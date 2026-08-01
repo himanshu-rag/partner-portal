@@ -175,6 +175,7 @@ export default function Dashboard() {
         }, 0);
 
         const activeDirectCount = activeRows.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
+        const isFiltered = data.length !== filteredData.length;
 
         return {
             totalCustomers: activeDirectCount,
