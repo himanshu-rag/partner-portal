@@ -8,7 +8,10 @@ const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
 const normalizeString = (val) => {
     if (val === null || val === undefined || val === '') return null;
-    const str = String(val).trim().toLowerCase().replace(/\s+/g, ' ');
+    let str = String(val).trim().toLowerCase();
+    // Remove text in parentheses/brackets to handle "(Indirect)" and similar suffixes
+    str = str.replace(/\[.*?\]|\(.*?\)/g, '');
+    str = str.replace(/\s+/g, ' ').trim();
     return str || null;
 };
 
