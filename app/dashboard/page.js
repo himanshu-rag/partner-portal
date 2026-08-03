@@ -174,13 +174,13 @@ export default function Dashboard() {
             return acc + base + extra;
         }, 0);
 
+        const totalDirectCount = data.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
         const activeDirectCount = activeRows.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
-        const wonDirectCount = activeRows.filter(r => r.status && String(r.status).toLowerCase() === 'won' && !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
         const isFiltered = data.length !== filteredData.length;
 
         return {
-            totalCustomers: activeDirectCount,
-            activeRenewals: wonDirectCount,
+            totalCustomers: totalDirectCount,
+            activeRenewals: activeDirectCount,
             usedStorage: usedStorage.toFixed(2),
             filteredStorage: filteredStorage.toFixed(2),
             filteredTitle,
