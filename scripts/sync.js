@@ -108,7 +108,8 @@ async function runSync() {
             name_norm: normalizeString(r['Customer Name']),
             status: r['Status'] ? String(r['Status']).trim() : null,
             renewal_date: normalizeDate(r['Activation Date']),
-            size_increased: r['Item'] ? String(r['Item']).trim() : null
+            size_increased: r['Item'] ? String(r['Item']).trim() : null,
+            partner: r['Partner'] ? String(r['Partner']).trim() : null
         }));
 
         console.log("Processing backup records...");
@@ -123,6 +124,12 @@ async function runSync() {
 
             const backupStorage = normalizeDecimal(row['Backup Storage (GB)']);
             const activationDate = normalizeDate(row['Activation Date']);
+            
+            const valueVal = row['Value'];
+            const value = valueVal !== null && valueVal !== undefined && String(valueVal).trim() !== '' ? parseFloat(String(valueVal).replace(/[^\d.-]/g, '')) : null;
+            
+            const cycleVal = row['Renewal Cycle (Months)'];
+            const renewalCycle = cycleVal !== null && cycleVal !== undefined && String(cycleVal).trim() !== '' ? parseInt(String(cycleVal).trim(), 10) : null;
             
             const partnerNorm = normalizeString(partner);
             const partnerEmail = portalLookup[partnerNorm] || null;
@@ -174,7 +181,10 @@ async function runSync() {
                         activationDate,
                         finalStatus,
                         renewalDate: renewal.renewal_date,
-                        finalSizeIncreased
+                        finalSizeIncreased,
+                        value,
+                        renewalCycle,
+                        renewed_partner: renewal.partner
                     });
                 }
             } else {
@@ -187,7 +197,10 @@ async function runSync() {
                     activationDate,
                     finalStatus: null,
                     renewalDate: null,
-                    finalSizeIncreased: 0
+                    finalSizeIncreased: 0,
+                    value,
+                    renewalCycle,
+                    renewed_partner: null
                 });
             }
         }
@@ -204,13 +217,14 @@ async function runSync() {
         for (const r of finalRecords) {
             const query = `
                 INSERT INTO ?? 
-                (partner, partner_email, customer_name, customer_id, backup_storage_gb, activation_date, status, renewal_date, size_increased) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (partner, partner_email, customer_name, customer_id, backup_storage_gb, activation_date, status, renewal_date, size_increased, value, renewal_cycle_months, renewed_partner) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
             const values = [
                 backupTable,
                 r.partner, r.partnerEmail, r.customerName, r.customerId, r.backupStorage,
-                r.activationDate, r.finalStatus, r.renewalDate, r.finalSizeIncreased
+                r.activationDate, r.finalStatus, r.renewalDate, r.finalSizeIncreased,
+                r.value, r.renewalCycle, r.renewed_partner
             ];
             
             try {

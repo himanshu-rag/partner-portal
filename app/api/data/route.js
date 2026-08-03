@@ -14,7 +14,14 @@ export async function GET(request) {
         email = email.trim().toLowerCase();
 
         const table = process.env.DB_TABLE || 'backup_history';
-        const [rows] = await db.query(`SELECT * FROM ?? WHERE partner_email = ?`, [table, email]);
+        const isSuperadmin = email === 'sharma.himanshu@elcom.com';
+        
+        let rows = [];
+        if (isSuperadmin) {
+            [rows] = await db.query(`SELECT * FROM ??`, [table]);
+        } else {
+            [rows] = await db.query(`SELECT * FROM ?? WHERE partner_email = ?`, [table, email]);
+        }
         
         const data = [];
         for (const row of rows) {
@@ -30,6 +37,7 @@ export async function GET(request) {
             };
 
             data.push({
+                partner_email: row.partner_email,
                 partner: partnerName,
                 customer_name: row.customer_name,
                 customer_id: row.customer_id,
@@ -37,7 +45,10 @@ export async function GET(request) {
                 activation_date: formatDbDate(row.activation_date),
                 status: row.status,
                 renewal_date: formatDbDate(row.renewal_date),
-                size_increased: row.size_increased
+                size_increased: row.size_increased,
+                value: row.value !== null ? parseFloat(row.value) : null,
+                renewal_cycle_months: row.renewal_cycle_months,
+                renewed_partner: row.renewed_partner
             });
         }
 
@@ -51,7 +62,12 @@ export async function GET(request) {
             console.error("Storage fetch error:", e);
         }
 
-        return NextResponse.json({ status: "success", data, allocated_storage: allocatedStorage });
+        return NextResponse.json({ 
+            status: "success", 
+            data, 
+            allocated_storage: allocatedStorage,
+            is_superadmin: isSuperadmin 
+        });
     } catch (error) {
         console.error("Data fetch error:", error);
         return NextResponse.json({ detail: "Failed to retrieve data." }, { status: 500 });
