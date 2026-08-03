@@ -65,16 +65,16 @@ export default function Dashboard() {
         else if (renStart) referenceDate = new Date(renStart + "T00:00:00");
 
         let processed = data.map(row => {
-            const rawStatus = row.status || 'won';
+            const rawStatus = row.status ? row.status.toLowerCase() : null;
             const renDateObj = row.renewal_date ? new Date(row.renewal_date) : null;
-            let displayStatus = 'Active';
+            let displayStatus = 'Activated';
             
-            if (rawStatus === 'lost' || rawStatus === 'pending') {
-                if (referenceDate && renDateObj && referenceDate < renDateObj) {
-                    displayStatus = 'Active';
-                } else {
-                    displayStatus = rawStatus === 'lost' ? 'Lost' : 'Pending';
-                }
+            if (rawStatus === 'won') {
+                displayStatus = 'Won';
+            } else if (rawStatus === 'lost') {
+                displayStatus = 'Lost';
+            } else if (rawStatus === 'pending') {
+                displayStatus = 'Pending';
             }
 
             return { ...row, displayStatus };
@@ -138,9 +138,9 @@ export default function Dashboard() {
     }, [data, searchTerm, statusFilter, storageFilter, actStart, actEnd, renStart, renEnd, sortOrder]);
 
     const metrics = useMemo(() => {
-        const activeRows = filteredData.filter(r => r.displayStatus === "Active");
+        const activeRows = filteredData.filter(r => r.displayStatus === "Activated" || r.displayStatus === "Won");
         const activeData = data.filter(r => {
-            const status = r.status ? String(r.status).toLowerCase() : 'active';
+            const status = r.status ? String(r.status).toLowerCase() : 'activated';
             const isIndirect = r.partner && String(r.partner).toLowerCase().includes('indirect');
             return status !== 'lost' && !isIndirect;
         });
@@ -175,11 +175,12 @@ export default function Dashboard() {
         }, 0);
 
         const activeDirectCount = activeRows.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
+        const wonDirectCount = activeRows.filter(r => r.status && String(r.status).toLowerCase() === 'won' && !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).length;
         const isFiltered = data.length !== filteredData.length;
 
         return {
             totalCustomers: activeDirectCount,
-            activeRenewals: activeDirectCount,
+            activeRenewals: wonDirectCount,
             usedStorage: usedStorage.toFixed(2),
             filteredStorage: filteredStorage.toFixed(2),
             filteredTitle,
@@ -224,7 +225,8 @@ export default function Dashboard() {
                             className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         >
                             <option value="all">All Statuses</option>
-                            <option value="active">Active</option>
+                            <option value="activated">Activated</option>
+                            <option value="won">Won</option>
                             <option value="lost">Lost</option>
                             <option value="pending">Pending</option>
                         </select>
@@ -355,6 +357,7 @@ export default function Dashboard() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-slate-800 bg-slate-900/50">
+                                    <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">S.No.</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Customer Name</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">ID</th>
                                     <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Storage (GB)</th>
@@ -374,13 +377,14 @@ export default function Dashboard() {
                                 ) : (
                                     filteredData.filter(r => !(r.partner && String(r.partner).toLowerCase().includes('indirect'))).map((row, idx) => (
                                         <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
+                                            <td className="px-6 py-4 text-sm text-slate-400">{idx + 1}</td>
                                             <td className="px-6 py-4 text-sm font-medium text-slate-200">{row.customer_name || '-'}</td>
                                             <td className="px-6 py-4 text-sm text-slate-400">{row.customer_id || '-'}</td>
                                             <td className="px-6 py-4 text-sm text-slate-300">{row.backup_storage_gb || '0'}</td>
                                             <td className="px-6 py-4 text-sm text-slate-400">{row.activation_date || '-'}</td>
                                             <td className="px-6 py-4 text-sm">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                                                    row.displayStatus === 'Active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                    (row.displayStatus === 'Activated' || row.displayStatus === 'Won') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                                                     row.displayStatus === 'Lost' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
                                                     'bg-amber-500/10 text-amber-400 border-amber-500/20'
                                                 }`}>
