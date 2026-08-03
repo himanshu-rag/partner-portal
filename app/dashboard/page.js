@@ -370,7 +370,7 @@ export default function Dashboard() {
                             <tbody className="divide-y divide-slate-800/50">
                                 {filteredData.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
+                                        <td colSpan="8" className="px-6 py-12 text-center text-slate-500">
                                             No customers found matching your criteria.
                                         </td>
                                     </tr>
